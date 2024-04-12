@@ -4,20 +4,7 @@ import boto3
 import logging
 import boto3
 from boto3.dynamodb.types import TypeSerializer
-
-def setup_logger(name):
-    logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.DEBUG)
-
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    ch.setFormatter(formatter)
-
-    logger.addHandler(ch)
-
-    return logger
+from logger import setup_logger
 
 class ActionsCleaner:
     def __init__(self):
@@ -32,6 +19,9 @@ class ActionsCleaner:
         self.index = 0
 
     def query_actions(self, last_evaluated_key=None):
+        '''
+        Query the Actions 25 per page by StatusIndex PENDING_INTERNAL with filter type DATABASE_UPDATE and customerId UUID 0
+        '''
         params = {
             'IndexName': 'StatusIndex',
             'ExpressionAttributeNames': {
@@ -55,6 +45,9 @@ class ActionsCleaner:
         return response
 
     def clean_actions(self):
+        '''
+        Query per page and update the status of each action to SUCCESS
+        '''
         self.logger.info("Querying actions")
         response = self.query_actions()
         self.logger.info(f"Found {response['Count']} actions")
@@ -71,6 +64,9 @@ class ActionsCleaner:
         self.logger.info(f"Cleaned up {self.index} actions")
 
     def update_action(self, i, item):
+        '''
+        Update the status of the action to SUCCESS
+        '''
         self.logger.info(f"Index: {i}, Customer ID: {base64.b64encode(bytes(item['customerId'])).decode('utf-8')}, Action ID: {base64.b64encode(bytes(item['actionId'])).decode('utf-8')}")
         self.table.update_item(
             Key={
