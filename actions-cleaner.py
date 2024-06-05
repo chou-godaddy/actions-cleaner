@@ -1,7 +1,4 @@
 import base64
-import logging
-import boto3
-import logging
 import boto3
 from boto3.dynamodb.types import TypeSerializer
 from logger import setup_logger
